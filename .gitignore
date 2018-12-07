@@ -17,6 +17,7 @@ bin/amp
 bin/amp.bat
 bin/boris
 bin/boris.bat
+bin/box
 bin/bower
 bin/bower.bat
 bin/civicrm-upgrade-test
