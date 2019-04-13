@@ -78,7 +78,7 @@ function split_files() {
       echo "$file" >> "$skipfiles"
 
     ## e.g. <?php or #!/usr/bin/php or #!/usr/bin/env php
-    elif head -n1 "$file" | grep '\(\?php\|#!\.*bin/php\|#!\.*env php\)' -q ; then
+    elif head -n1 "$file" | grep '\(\?php\|#!.*bin/php\|#!.*env php\)'  ; then
       echo "$file" >> "$phpfiles"
 
     else
