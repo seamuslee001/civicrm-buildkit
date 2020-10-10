@@ -412,14 +412,14 @@ function amp_snapshot_create() {
     echo "[[Save CMS DB ($CMS_DB_NAME) to file ($CMS_SQL)]]"
     cvutil_assertvars amp_snapshot_create CMS_SQL CMS_DB_ARGS CMS_DB_NAME
     cvutil_makeparent "$CMS_SQL"
-    cvutil_php_nodbg amp sql:dump --root="$CMS_ROOT" -Ncms | gzip > "$CMS_SQL"
+    cvutil_php_nodbg amp sql:dump --root="$CMS_ROOT" --passthru="--no-tablespaces" -Ncms | gzip > "$CMS_SQL"
   fi
 
   if [ -z "$CIVI_SQL_SKIP" ]; then
     echo "[[Save Civi DB ($CIVI_DB_NAME) to file ($CIVI_SQL)]]"
     cvutil_assertvars amp_snapshot_create CIVI_SQL CIVI_DB_ARGS CIVI_DB_NAME
     cvutil_makeparent "$CIVI_SQL"
-    cvutil_php_nodbg amp sql:dump --root="$CMS_ROOT" -Ncivi | gzip > "$CIVI_SQL"
+    cvutil_php_nodbg amp sql:dump --root="$CMS_ROOT" --passthru="--no-tablespaces" -Ncivi | gzip > "$CIVI_SQL"
   fi
 }
 
@@ -565,7 +565,7 @@ function api4_download_conditional() {
 ##
 ## Be sure to "cd" into the root of the composer project, then call `civicrm_download_composer_d8`
 function civicrm_download_composer_d8() {
-  cvutil_assertvars civicrm_download_composer_d8 CIVI_VERSION
+  cvutil_assertvars civicrm_download_composer_d8 CIVI_VERSION CMS_VERSION
 
   composer config 'extra.enable-patching' true
   ## Ensure that we compile all our js as necessary
@@ -588,8 +588,10 @@ function civicrm_download_composer_d8() {
     5.30*) EXTRA_COMPOSER+=( 'civicrm/civicrm-asset-plugin:~1.1' ) ; ;;
     *) echo "No extra patches required" ; ;;
   esac
-  EXTRA_COMPOSER+=( 'pear/pear_exception:1.0.1 as 1.0.0') ## weird conflict in drupal-composer/drupal-project
 
+  if [[ $CMS_VERSION == "8."* ]]; then
+    EXTRA_COMPOSER+=( 'pear/pear_exception:1.0.1 as 1.0.0') ## weird conflict in drupal-composer/drupal-project
+  fi
   composer require "${EXTRA_COMPOSER[@]}" civicrm/civicrm-{core,packages,drupal-8}:"$CIVI_VERSION_COMP" --prefer-source
   [ -n "$EXTRA_PATCH" ] && git scan am -N "${EXTRA_PATCH[@]}"
 
@@ -1139,7 +1141,7 @@ function drupal7_uninstall() {
       ## Need to keep default.settings.php.
       pushd "$CMS_ROOT" >> /dev/null
         chmod u+w "sites/default"
-        if [ -f "sites/default/settings.php" ]; then
+       if [ -f "sites/default/settings.php" ]; then
           chmod u+w "sites/default/settings.php"
           rm -f "sites/default/settings.php"
         fi
